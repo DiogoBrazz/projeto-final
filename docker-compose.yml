@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Serviço do Banco de Dados (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root          # <-- ALTERADO: Senha do usuário root
+      MYSQL_DATABASE: projetofinal       # <-- ALTERADO: Nome do banco de dados
+      # Removemos as variáveis MYSQL_USER e MYSQL_PASSWORD pois usaremos o root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  # Serviço do Backend (Nossa API Node.js)
+  backend:
+    build: ./backend
+    container_name: node_backend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: db
+      DB_USER: root                      # <-- ALTERADO: Usuário para conexão
+      DB_PASSWORD: root                  # <-- ALTERADO: Senha para conexão
+      DB_NAME: projetofinal              # <-- ALTERADO: Nome do banco para conexão
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  # Serviço do Frontend (Nginx servindo nossos arquivos)
+  frontend:
+    build: ./frontend
+    container_name: nginx_frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge
