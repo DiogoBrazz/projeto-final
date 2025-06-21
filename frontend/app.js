@@ -1,5 +1,5 @@
 // frontend/app.js
-const apiUrl = 'http://localhost:3001/itens'; // URL da nossa API backend
+const apiUrl = '/api/itens'; 
 
 // Função para buscar e exibir os itens na lista
 async function listarItens() {
