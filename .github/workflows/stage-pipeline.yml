@@ -12,6 +12,8 @@ jobs:
   terraform:
     name: 'Terraform IaC'
     runs-on: ubuntu-latest
+    env:
+      TF_STATE_BUCKET: "bucket-terraform"
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -24,11 +26,25 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
+    # --- ETAPA A: BOOTSTRAP DO BUCKET DE ESTADO ---
+    - name: Terraform Init (Bootstrap)
+      id: init-bootstrap
       run: terraform init
-      working-directory: ./terraform
+      working-directory: ./terraform/bootstrap
 
-    - name: Terraform Apply
+    - name: Terraform Apply (Bootstrap)
+      id: apply-bootstrap
+      run: terraform apply -auto-approve -var="bucket_name=${{ env.TF_STATE_BUCKET }}"
+      working-directory: ./terraform/bootstrap
+
+    # --- ETAPA B: INFRAESTRUTURA PRINCIPAL ---
+    - name: Terraform Init (Main)
+      id: init-main
+      run: terraform init -input=false
+      working-directory: ./terraform
+      
+    - name: Terraform Apply (Main)
+      id: apply-main
       run: terraform apply -auto-approve
       working-directory: ./terraform
 
