@@ -58,6 +58,15 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY_STAGE }}
 
+      # NOVO PASSO: Configurar o gcloud CLI e instalar componentes, incluindo o plugin GKE
+      - name: Setup gcloud CLI with GKE Auth Plugin
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          # Instala o componente 'gke-gcloud-auth-plugin'
+          # Você também pode adicionar 'kubectl' aqui se não estiver já presente
+          component: ['gke-gcloud-auth-plugin']
+
       - name: Conectar ao cluster GKE
         run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
 
