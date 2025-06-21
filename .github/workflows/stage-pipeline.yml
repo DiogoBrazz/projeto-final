@@ -76,4 +76,6 @@ jobs:
           sed -i 's|lista-itens-frontend:.*|lista-itens-frontend:${{ github.sha }}|g' ./arquivos/frontend-config/frontend-deployment.yaml
 
       - name: Deploy no Kubernetes
+        env:
+          USE_GKE_GCLOUD_AUTH_PLUGIN: True
         run: kubectl apply -R -f ./arquivos/
