@@ -12,6 +12,10 @@ jobs:
   terraform:
     name: 'Terraform IaC'
     runs-on: ubuntu-latest
+    
+    env:
+      TF_STATE_BUCKET: "bucket-tfstate-diogo-462108"
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -24,25 +28,28 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # --- ETAPA A: BOOTSTRAP DO BUCKET DE ESTADO ---
+    # --- ETAPA A: BOOTSTRAP CONDICIONAL DO BUCKET ---
+    - name: Checar se o bucket de estado existe
+      id: check_bucket
+      run: gsutil ls gs://${{ env.TF_STATE_BUCKET }}
+      continue-on-error: true # IMPORTANTE: Se o bucket não existir, o comando falha, mas a pipeline continua.
+
     - name: Terraform Init (Bootstrap)
-      id: init-bootstrap
+      if: steps.check_bucket.outcome == 'failure' # SÓ RODA SE O PASSO ANTERIOR FALHOU (ou seja, o bucket não existe)
       run: terraform init
       working-directory: ./terraform/bootstrap
 
     - name: Terraform Apply (Bootstrap)
-      id: apply-bootstrap
+      if: steps.check_bucket.outcome == 'failure' # SÓ RODA SE O PASSO ANTERIOR FALHOU
       run: terraform apply -auto-approve
       working-directory: ./terraform/bootstrap
 
     # --- ETAPA B: INFRAESTRUTURA PRINCIPAL ---
     - name: Terraform Init (Main)
-      id: init-main
       run: terraform init -input=false
       working-directory: ./terraform
       
     - name: Terraform Apply (Main)
-      id: apply-main
       run: terraform apply -auto-approve
       working-directory: ./terraform
 
