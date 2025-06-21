@@ -69,10 +69,10 @@ jobs:
       - name: Setup gcloud CLI with GKE Auth Plugin
         uses: google-github-actions/setup-gcloud@v2
         with:
-        project_id: ${{ env.GCP_PROJECT_ID }}
-        # Garante a instalação do plugin e kubectl
-        install_components: 'gke-gcloud-auth-plugin,kubectl'
-        # Exporta automaticamente para o PATH
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          # Garante a instalação do plugin e kubectl
+          install_components: 'gke-gcloud-auth-plugin,kubectl'
+          # Exporta automaticamente para o PATH
 
       - name: Autenticar no Google Cloud
         uses: google-github-actions/auth@v2
