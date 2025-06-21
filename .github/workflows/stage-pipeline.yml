@@ -63,7 +63,7 @@ jobs:
 
       - name: Substituir a Tag da Imagem nos Deployments
         run: |
-          sed -i 's|lista-itens-backend:.*|lista-itens-backend:${{ github.sha }}|g' ./arquivos/backend-cofig/backend-deployment.yaml
+          sed -i 's|lista-itens-backend:.*|lista-itens-backend:${{ github.sha }}|g' ./arquivos/backend-config/backend-deployment.yaml
           sed -i 's|lista-itens-frontend:.*|lista-itens-frontend:${{ github.sha }}|g' ./arquivos/frontend-config/frontend-deployment.yaml
 
       - name: Deploy no Kubernetes
