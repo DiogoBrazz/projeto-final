@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -8,4 +9,16 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
+=======
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: database # <<< ADICIONADO: Boa prática
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+>>>>>>> 08f6bc72d9238c15f6ad4fe5ced10bc8e4af9392
       storage: 10Gi # 10GB é um bom começo e está dentro da cota gratuita do GKE

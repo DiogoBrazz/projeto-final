@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,3 +12,18 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
+=======
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+>>>>>>> 08f6bc72d9238c15f6ad4fe5ced10bc8e4af9392

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,4 +9,16 @@ spec:
   - port: 3306
   selector:
     app: mysql
+=======
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: database # <<< ADICIONADO: Namespace correto
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+>>>>>>> 08f6bc72d9238c15f6ad4fe5ced10bc8e4af9392
   clusterIP: None # Um "Headless Service" é usado com StatefulSets para dar aos pods um endereço de rede único.

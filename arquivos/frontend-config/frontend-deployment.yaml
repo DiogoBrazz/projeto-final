@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,4 +33,40 @@ spec:
             memory: "32Mi"
           limits:
             cpu: "50m"
+=======
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        # <<< CORRIGIDO: Aponta para a imagem que vamos subir
+        image: us-central1-docker.pkg.dev/lexical-rock-462108-d8/projeto-final-imagens/lista-itens-frontend:v1.1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+      
+        env:
+        - name: API_BASE_URL
+          # <<< CORRIGIDO: Aponta para a porta correta do serviço do backend
+          value: "http://backend-service.backend.svc.cluster.local:3001"
+
+        resources: # Mantido, mas otimizado
+          requests:
+            cpu: "25m"
+            memory: "32Mi"
+          limits:
+            cpu: "50m"
+>>>>>>> 08f6bc72d9238c15f6ad4fe5ced10bc8e4af9392
             memory: "64Mi"

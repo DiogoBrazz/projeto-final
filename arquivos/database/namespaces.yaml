@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -11,4 +12,19 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+=======
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: database
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+>>>>>>> 08f6bc72d9238c15f6ad4fe5ced10bc8e4af9392
   name: backend
