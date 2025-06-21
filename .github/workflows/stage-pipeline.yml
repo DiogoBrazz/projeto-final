@@ -63,8 +63,6 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
-          # Instala o componente 'gke-gcloud-auth-plugin'
-          # Você também pode adicionar 'kubectl' aqui se não estiver já presente
           component: 'gke-gcloud-auth-plugin, kubectl'
 
       - name: Conectar ao cluster GKE
