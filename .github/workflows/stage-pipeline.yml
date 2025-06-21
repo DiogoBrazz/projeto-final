@@ -1,82 +1,79 @@
-name: Deploy to Stage (GKE)
+name: CI/CD Pipeline for Stage Environment
 
 on:
   push:
     branches:
-      - main  # A pipeline vai rodar a cada push na branch 'main'
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
+  test:
+    name: Run Backend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Instalar dependências do Backend
+        working-directory: ./backend
+        run: npm install
+      - name: Rodar testes do Backend
+        working-directory: ./backend
+        run: npm test
+
   build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
-    
+    needs: test # <<< SÓ RODA DEPOIS QUE OS TESTES PASSAREM
     env:
-      GCP_PROJECT_ID: lexical-rock-462108-d8 # <<< SEU ID DE PROJETO STAGE AQUI
+      GCP_PROJECT_ID: lexical-rock-462108-d8
       GCP_REGION: us-central1
       ARTIFACT_REPO: projeto-final-imagens
       IMAGE_BACKEND: lista-itens-backend
       IMAGE_FRONTEND: lista-itens-frontend
-
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
-
       - name: Autenticar no Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY_STAGE }}
-
       - name: Configurar Docker
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
-
       - name: Build e Push do Backend
         run: |
           docker build -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_BACKEND }}:${{ github.sha }} ./backend
           docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_BACKEND }}:${{ github.sha }}
-
       - name: Build e Push do Frontend
         run: |
           docker build -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_FRONTEND }}:${{ github.sha }} ./frontend
           docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
 
   deploy:
-    name: Deploy to GKE
+    name: Deploy to GKE Stage
     runs-on: ubuntu-latest
-    needs: build-and-push # Só roda depois que o job de build terminar com sucesso
-
+    needs: build-and-push # <<< SÓ RODA DEPOIS DO BUILD E PUSH
     env:
-      GCP_PROJECT_ID: lexical-rock-462108-d8 # <<< SEU ID DE PROJETO STAGE AQUI
-      GKE_CLUSTER: cluster-1 # <<< NOME DO SEU CLUSTER STAGE
+      GCP_PROJECT_ID: lexical-rock-462108-d8
+      GKE_CLUSTER: cluster-1
       GKE_ZONE: us-central1-a
-
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
-
-      - name: Setup gcloud CLI with GKE Auth Plugin
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ env.GCP_PROJECT_ID }}
-          # Garante a instalação do plugin e kubectl
-          install_components: 'gke-gcloud-auth-plugin,kubectl'
-          # Exporta automaticamente para o PATH
-
       - name: Autenticar no Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY_STAGE }}
-
       - name: Conectar ao cluster GKE
-        env:
-          USE_GKE_GCLOUD_AUTH_PLUGIN: True
         run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
-
       - name: Substituir a Tag da Imagem nos Deployments
         run: |
           sed -i 's|lista-itens-backend:.*|lista-itens-backend:${{ github.sha }}|g' ./arquivos/backend-config/backend-deployment.yaml
           sed -i 's|lista-itens-frontend:.*|lista-itens-frontend:${{ github.sha }}|g' ./arquivos/frontend-config/frontend-deployment.yaml
-
       - name: Deploy no Kubernetes
-        env:
-          USE_GKE_GCLOUD_AUTH_PLUGIN: True
         run: kubectl apply -R -f ./arquivos/
