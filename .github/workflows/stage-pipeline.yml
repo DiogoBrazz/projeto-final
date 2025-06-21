@@ -9,8 +9,7 @@ on:
       - main
 
 jobs:
-  # JOB DE TERRAFORM CORRIGIDO
-terraform:
+  terraform:
   name: 'Terraform IaC'
   runs-on: ubuntu-latest
   steps:
@@ -31,6 +30,7 @@ terraform:
     working-directory: ./terraform/bootstrap
 
   - name: Terraform Apply (Bootstrap)
+    # <<< A CORREÇÃO ESTÁ AQUI
     run: terraform apply -auto-approve
     working-directory: ./terraform/bootstrap
 
