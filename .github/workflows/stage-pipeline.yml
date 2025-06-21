@@ -65,7 +65,7 @@ jobs:
           project_id: ${{ env.GCP_PROJECT_ID }}
           # Instala o componente 'gke-gcloud-auth-plugin'
           # Você também pode adicionar 'kubectl' aqui se não estiver já presente
-          component: ['gke-gcloud-auth-plugin']
+          component: 'gke-gcloud-auth-plugin, kubectl'
 
       - name: Conectar ao cluster GKE
         run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
