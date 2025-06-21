@@ -66,6 +66,8 @@ jobs:
           component: 'gke-gcloud-auth-plugin, kubectl'
 
       - name: Conectar ao cluster GKE
+        env:
+          USE_GKE_GCLOUD_AUTH_PLUGIN: True
         run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
 
       - name: Substituir a Tag da Imagem nos Deployments
