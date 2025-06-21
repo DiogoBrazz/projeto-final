@@ -13,7 +13,7 @@ resource "google_project_service" "storage_api" {
 # Recurso que cria o nosso bucket de estado do Terraform
 resource "google_storage_bucket" "tf_state" {
   # IMPORTANTE: Substitua pelo mesmo nome de bucket único que você definiu antes
-  name          = "bucket-terraform" 
+  name          = "bucket-tfstate-diogo-462108" 
   location      = "US-CENTRAL1"
   force_destroy = false # Medida de segurança para não apagar sem querer
 
