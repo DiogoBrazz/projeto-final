@@ -109,4 +109,12 @@ jobs:
           sed -i 's|lista-itens-backend:.*|lista-itens-backend:${{ github.sha }}|g' ./arquivos/backend-config/backend-deployment.yaml
           sed -i 's|lista-itens-frontend:.*|lista-itens-frontend:${{ github.sha }}|g' ./arquivos/frontend-config/frontend-deployment.yaml
       - name: Deploy no Kubernetes
-        run: kubectl apply -R -f ./arquivos/
+        run: |
+          echo "INFO: Aplicando namespaces primeiro..."
+          find ./arquivos -name "namespaces.yaml" -exec kubectl apply -f {} \;
+          
+          echo "INFO: Aguardando 5 segundos para a propagação dos namespaces..."
+          sleep 5
+          
+          echo "INFO: Aplicando os outros recursos..."
+          kubectl apply -R -f ./arquivos/
