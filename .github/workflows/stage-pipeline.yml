@@ -10,11 +10,14 @@ on:
 
 jobs:
   terraform:
-    name: 'Terraform IaC'
+    name: 'Terraform IaC (Infra as Code)'
     runs-on: ubuntu-latest
     
     env:
+      # Substitua pelo nome do bucket que você definiu
       TF_STATE_BUCKET: "bucket-tfstate-diogo-462108"
+      GCP_PROJECT_ID: lexical-rock-462108-d8 # Adicionado para uso no gcloud
+      GCP_LOCATION: US-CENTRAL1 # Adicionado para uso no gcloud
 
     steps:
     - name: Checkout
@@ -28,28 +31,25 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # --- ETAPA A: BOOTSTRAP CONDICIONAL DO BUCKET ---
-    - name: Checar se o bucket de estado existe
+    # --- ETAPA A: GARANTIR QUE O BUCKET DE ESTADO EXISTA ---
+    - name: Checar se o bucket de estado existe (Método Robusto)
       id: check_bucket
-      run: gsutil ls gs://${{ env.TF_STATE_BUCKET }}
-      continue-on-error: true # IMPORTANTE: Se o bucket não existir, o comando falha, mas a pipeline continua.
+      run: gcloud storage buckets describe gs://${{ env.TF_STATE_BUCKET }}
+      continue-on-error: true # Se o bucket não existir, o comando falha, mas a pipeline continua.
 
-    - name: Terraform Init (Bootstrap)
-      if: steps.check_bucket.outcome == 'failure' # SÓ RODA SE O PASSO ANTERIOR FALHOU (ou seja, o bucket não existe)
-      run: terraform init
-      working-directory: ./terraform/bootstrap
-
-    - name: Terraform Apply (Bootstrap)
-      if: steps.check_bucket.outcome == 'failure' # SÓ RODA SE O PASSO ANTERIOR FALHOU
-      run: terraform apply -auto-approve
-      working-directory: ./terraform/bootstrap
+    - name: Criar bucket de estado (se não existir)
+      # SÓ RODA SE O PASSO ANTERIOR FALHOU (ou seja, o bucket não existe)
+      if: steps.check_bucket.outcome == 'failure'
+      run: |
+        echo "Bucket não encontrado. Criando bucket de estado..."
+        gcloud storage buckets create gs://${{ env.TF_STATE_BUCKET }} --project=${{ env.GCP_PROJECT_ID }} --location=${{ env.GCP_LOCATION }} --uniform-bucket-level-access
 
     # --- ETAPA B: INFRAESTRUTURA PRINCIPAL ---
-    - name: Terraform Init (Main)
+    - name: Terraform Init (Conecta ao bucket)
       run: terraform init -input=false
       working-directory: ./terraform
       
-    - name: Terraform Apply (Main)
+    - name: Terraform Apply (Cria/Atualiza o cluster)
       run: terraform apply -auto-approve
       working-directory: ./terraform
 
