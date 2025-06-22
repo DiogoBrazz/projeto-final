@@ -77,13 +77,18 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY_STAGE }}
       
+      # <<< Passo para instalar gcloud/kubectl e o plugin de autenticação >>>
+      - name: Setup gcloud CLI with GKE Auth Plugin
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          install_components: 'gke-gcloud-auth-plugin,kubectl'
+
       - name: Conectar ao cluster GKE
         run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
       
       - name: Instalar o Helm
         uses: azure/setup-helm@v4
-        with:
-          version: 'v3.13.0' # Versão estável do Helm
 
       - name: Adicionar repositório do Prometheus
         run: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts && helm repo update
