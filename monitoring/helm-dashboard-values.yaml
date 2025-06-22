@@ -1,13 +1,13 @@
 grafana:
   grafana.ini:
     server:
-      root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+      root_url: "https://3000-cs-lexical-rock-462108-d8.cs-us-east1-yeah.cloudshell.dev/"
       serve_from_sub_path: true
     security:
       allow_embedding: true
+    auth:
       cookie_samesite: none
       cookie_secure: true
-    auth:
       disable_login_form: false
       disable_signout_menu: false
 
