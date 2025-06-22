@@ -18,7 +18,7 @@ spec:
       containers:
       - name: backend
         # <<< CORRIGIDO: Aponta para a imagem que vamos subir
-        image: us-central1-docker.pkg.dev/lexical-rock-462108-d8/projeto-final-imagens/lista-itens-backend:v1.0.0
+        image: IMAGE_PLACEHOLDER/lista-itens-backend
         imagePullPolicy: Always
         ports:
         - containerPort: 3001 # <<< CORRIGIDO: Porta da nossa aplicação Node.js
@@ -76,7 +76,7 @@ spec:
       containers:
       - name: backend
         # <<< CORRIGIDO: Aponta para a imagem que vamos subir
-        image: us-central1-docker.pkg.dev/lexical-rock-462108-d8/projeto-final-imagens/lista-itens-backend:v1.0.0
+        image: IMAGE_PLACEHOLDER/lista-itens-backend
         imagePullPolicy: Always
         ports:
         - containerPort: 3001 # <<< CORRIGIDO: Porta da nossa aplicação Node.js
