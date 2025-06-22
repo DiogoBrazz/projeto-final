@@ -11,11 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      # nome do seu bucket de PRODUÇÃO AMIRA
-      TF_STATE_BUCKET: "bucket-tfstate-amira-462108" 
-      # ID do seu projeto de PRODUÇÃO AMIRA
+      # Use as variáveis corretas para o seu ambiente de Produção
+      TF_STATE_BUCKET: "bucket-tfstate-amira-462108"
       GCP_PROJECT_ID: "festive-post-461507-v9"
-      GCP_LOCATION: US-CENTRAL1
 
     steps:
     - name: Checkout
@@ -24,16 +22,21 @@ jobs:
     - name: Setup gcloud
       uses: google-github-actions/setup-gcloud@v2
 
+    # --- MÉTODO DE AUTENTICAÇÃO NOVO E EXPLÍCITO ---
     - name: Autenticar no Google Cloud
       id: auth
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
+      run: |
+        # Escreve o conteúdo do segredo num ficheiro temporário
+        echo '${{ secrets.GCP_SA_KEY_PROD }}' > gcloud-key.json
+        # Usa o gcloud para ativar a conta de serviço com a chave
+        gcloud auth activate-service-account --key-file=gcloud-key.json
+        # Define o projeto para garantir que todos os comandos usem o correto
+        gcloud config set project ${{ env.GCP_PROJECT_ID }}
 
-    # --- PASSO DE DIAGNÓSTICO ADICIONADO ---
+    # --- O NOSSO PASSO DE DIAGNÓSTICO ---
+    # Agora este passo deve funcionar, pois o gsutil usará a autenticação acima.
     - name: Testar acesso direto ao bucket com gsutil
       run: gsutil ls gs://${{ env.TF_STATE_BUCKET }}
-      # Este passo vai tentar fazer a mesma coisa que o Terraform: listar objetos no bucket.
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
