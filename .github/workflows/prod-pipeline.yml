@@ -15,6 +15,18 @@ jobs:
       TF_STATE_BUCKET: "bucket-tfstate-amira-462108"
       GCP_PROJECT_ID: "festive-post-461507-v9"
 
+    jobs:
+  terraform:
+    name: 'Terraform IaC (Infra as Code)'
+    runs-on: ubuntu-latest
+    
+    env:
+      # Use as variáveis corretas para o seu ambiente de Produção
+      TF_STATE_BUCKET: "bucket-tfstate-amira-462108"
+      GCP_PROJECT_ID: "festive-post-461507-v9"
+      # Adicione o e-mail da sua conta de serviço aqui para facilitar
+      GCP_SA_EMAIL: "github-actions-prod-deployer@festive-post-461507-v9.iam.gserviceaccount.com"
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -22,22 +34,33 @@ jobs:
     - name: Setup gcloud
       uses: google-github-actions/setup-gcloud@v2
 
-    # --- MÉTODO DE AUTENTICAÇÃO ATUALIZADO ---
-    - name: Autenticar no Google Cloud e Expor Credenciais
+    - name: Autenticar no Google Cloud
       id: auth
       run: |
-        # Escreve o conteúdo do segredo num ficheiro temporário
         echo '${{ secrets.GCP_SA_KEY_PROD }}' > gcloud-key.json
-        # Usa o gcloud para ativar a conta de serviço com a chave
         gcloud auth activate-service-account --key-file=gcloud-key.json
-        # Define o projeto para garantir que todos os comandos usem o correto
         gcloud config set project ${{ env.GCP_PROJECT_ID }}
-        # <<< CORREÇÃO: Exporta o caminho do ficheiro de chave para o ambiente da pipeline.
-        # O Terraform irá detetar esta variável automaticamente.
         echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcloud-key.json" >> $GITHUB_ENV
 
-    # --- O NOSSO PASSO DE DIAGNÓSTICO (OPCIONAL AGORA, MAS BOM MANTER) ---
-    - name: Testar acesso direto ao bucket com gsutil
+    # --- NOVOS PASSOS DE DIAGNÓSTICO ---
+    - name: 1. Verificar identidade autenticada
+      run: gcloud auth list
+
+    - name: 2. Verificar permissões no Projeto
+      run: |
+        echo "A verificar as permissões do projeto para ${{ env.GCP_SA_EMAIL }}..."
+        gcloud projects get-iam-policy ${{ env.GCP_PROJECT_ID }} \
+          --flatten="bindings[].members" \
+          --format='table(bindings.role)' \
+          --filter="bindings.members:${{ env.GCP_SA_EMAIL }}"
+
+    - name: 3. Verificar permissões no Bucket
+      run: |
+        echo "A verificar as permissões do bucket gs://${{ env.TF_STATE_BUCKET }}..."
+        gsutil iam get gs://${{ env.TF_STATE_BUCKET }}
+
+    # --- O NOSSO TESTE ORIGINAL ---
+    - name: 4. Tentar listar objetos no bucket
       run: gsutil ls gs://${{ env.TF_STATE_BUCKET }}
 
     - name: Setup Terraform
