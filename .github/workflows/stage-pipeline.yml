@@ -99,7 +99,8 @@ jobs:
             prometheus-community/kube-prometheus-stack \
             --namespace monitoring \
             --create-namespace \
-            --wait
+            --wait \
+            -f ./monitoring/helm-dashboard-values.yaml
 
   # <<< ========================== JOB PARA TESTES========================== >>>
 
