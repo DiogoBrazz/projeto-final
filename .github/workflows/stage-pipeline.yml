@@ -100,7 +100,7 @@ jobs:
             --namespace monitoring \
             --create-namespace \
             --wait \
-            --timeout 10m \
+            --timeout 15m \
             -f ./monitoring/helm-dashboard-values.yaml
 
   # <<< ========================== JOB PARA TESTES========================== >>>
