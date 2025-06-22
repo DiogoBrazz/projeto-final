@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      # <<< MUDADO: Aponte para o nome do seu bucket de PRODUÇÃO
-      TF_STATE_BUCKET: "bucket-tfstate-diogo-PROD-462108" 
-      # <<< MUDADO: Aponte para o ID do seu projeto de PRODUÇÃO
-      GCP_PROJECT_ID: "[SEU_ID_PROJETO_PRODUCAO]" 
+      # nome do seu bucket de PRODUÇÃO AMIRA
+      TF_STATE_BUCKET: "bucket-tfstate-amira-462108" 
+      # ID do seu projeto de PRODUÇÃO AMIRA
+      GCP_PROJECT_ID: "festive-post-461507-v9"
       GCP_LOCATION: US-CENTRAL1
 
     steps:
