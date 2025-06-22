@@ -6,12 +6,26 @@ grafana:
       cookie_samesite: "none"
       cookie_secure: true
 
+  admin:
+    user: admin
+    password: senha123
+
   sidecar:
     dashboards:
       enabled: true
       label: grafana_dashboard
       labelValue: "1"
 
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-stack-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+          access: proxy
+          isDefault: true
+          
   dashboards:
     default:
       projeto-final-dashboard:
