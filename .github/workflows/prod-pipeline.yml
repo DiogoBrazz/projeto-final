@@ -109,6 +109,8 @@ jobs:
       # <<< MUDADO: Nome do cluster de PRODUÇÃO
       GKE_CLUSTER: "prod-cluster" 
       GKE_ZONE: us-central1-a
+      GCP_REGION: us-central1
+      ARTIFACT_REPO: projeto-final-imagens
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -126,19 +128,16 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
       - name: Conectar ao cluster GKE
         run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
-        # NOVO PASSO DE SUBSTITUIÇÃO
+    
       - name: Substituir Placeholders de Imagem nos Deployments
         run: |
-          # Constrói o caminho base da imagem usando as variáveis do ambiente da pipeline
           IMAGE_PATH_BASE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}"
-
+          
           echo "A substituir placeholder pela base da imagem: $IMAGE_PATH_BASE"
-
-          # Procura por "IMAGE_PLACEHOLDER/nome-do-backend" e substitui pelo caminho completo + tag única do commit
+          
           sed -i "s|IMAGE_PLACEHOLDER/lista-itens-backend|$IMAGE_PATH_BASE/lista-itens-backend:${{ github.sha }}|g" ./arquivos/backend-config/backend-deployment.yaml
-
-          # Faz o mesmo para o frontend
           sed -i "s|IMAGE_PLACEHOLDER/lista-itens-frontend|$IMAGE_PATH_BASE/lista-itens-frontend:${{ github.sha }}|g" ./arquivos/frontend-config/frontend-deployment.yaml
+
       - name: Deploy no Kubernetes
         run: |
           echo "INFO: Aplicando namespaces primeiro..."
