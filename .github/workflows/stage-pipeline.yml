@@ -137,6 +137,16 @@ jobs:
 
           # Faz o mesmo para o frontend
           sed -i "s|IMAGE_PLACEHOLDER/lista-itens-frontend|$IMAGE_PATH_BASE/lista-itens-frontend:${{ github.sha }}|g" ./arquivos/frontend-config/frontend-deployment.yaml
+
+      - name: Diagnosticar Nomes de Imagem (DEBUG)
+        run: |
+          echo "--- Conteúdo do backend-deployment.yaml após substituição ---"
+          cat ./arquivos/backend-config/backend-deployment.yaml
+          echo "------------------------------------------------------------"
+          echo "--- Conteúdo do frontend-deployment.yaml após substituição ---"
+          cat ./arquivos/frontend-config/frontend-deployment.yaml
+          echo "------------------------------------------------------------"
+          
       - name: Deploy no Kubernetes
         run: |
           echo "INFO: Aplicando namespaces primeiro..."
