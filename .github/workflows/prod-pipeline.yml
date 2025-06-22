@@ -21,28 +21,24 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@v2
+
     - name: Autenticar no Google Cloud
+      id: auth
       uses: google-github-actions/auth@v2
       with:
-        # <<< MUDADO: Usa o segredo da conta de PRODUÇÃO
         credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
+
+    # --- PASSO DE DIAGNÓSTICO ADICIONADO ---
+    - name: Testar acesso direto ao bucket com gsutil
+      run: gsutil ls gs://${{ env.TF_STATE_BUCKET }}
+      # Este passo vai tentar fazer a mesma coisa que o Terraform: listar objetos no bucket.
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # --- ETAPA A: GARANTIR QUE O BUCKET DE ESTADO EXISTA ---
-    - name: Checar se o bucket de estado existe (Método Robusto)
-      id: check_bucket
-      run: gcloud storage buckets describe gs://${{ env.TF_STATE_BUCKET }}
-      continue-on-error: true
-
-    - name: Criar bucket de estado (se não existir)
-      if: steps.check_bucket.outcome == 'failure'
-      run: |
-        echo "Bucket não encontrado. Criando bucket de estado..."
-        gcloud storage buckets create gs://${{ env.TF_STATE_BUCKET }} --project=${{ env.GCP_PROJECT_ID }} --location=${{ env.GCP_LOCATION }} --uniform-bucket-level-access
-
-    # --- ETAPA B: INFRAESTRUTURA PRINCIPAL ---
+    # --- ETAPA PRINCIPAL ---
     - name: Terraform Init (Conecta ao bucket)
       run: terraform init -input=false
       working-directory: ./terraform
