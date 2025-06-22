@@ -1,10 +1,15 @@
 grafana:
   grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+      serve_from_sub_path: true
     security:
       allow_embedding: true
-    auth:
-      cookie_samesite: "none"
+      cookie_samesite: none
       cookie_secure: true
+    auth:
+      disable_login_form: false
+      disable_signout_menu: false
 
   admin:
     user: admin
