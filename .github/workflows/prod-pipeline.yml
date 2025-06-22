@@ -1,46 +1,50 @@
-# NOME DA PIPELINE ALTERADO PARA PRODUÇÃO
 name: Deploy to Production (GKE)
 
-# GATILHO ALTERADO PARA ACIONAMENTO MANUAL NO GITHUB ACTIONS
 on:
   workflow_dispatch:
 
 jobs:
+  # Este job agora tem um único objetivo: criar a infraestrutura.
   terraform:
     name: 'Terraform IaC (Infra as Code)'
     runs-on: ubuntu-latest
     
     env:
-      TF_STATE_BUCKET: "bucket-tfstate-amira-462108"
       GCP_PROJECT_ID: "festive-post-461507-v9"
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup gcloud
-      uses: google-github-actions/setup-gcloud@v2
-
-    # --- O PASSO DE AUTENTICAÇÃO CORRETO ---
-    - name: Autenticar no Google Cloud e Expor Credenciais
-      id: auth
-      run: |
-        echo '${{ secrets.GCP_SA_KEY_PROD }}' > gcloud-key.json
-        gcloud auth activate-service-account --key-file=gcloud-key.json
-        gcloud config set project ${{ env.GCP_PROJECT_ID }}
-        # A LINHA MÁGICA: Diz ao Terraform onde encontrar a chave.
-        echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcloud-key.json" >> $GITHUB_ENV
+    # Passo 1: Apenas escreve a chave num ficheiro num local conhecido.
+    - name: Preparar Chave de Autenticação do GCP
+      id: sa-key
+      run: echo '${{ secrets.GCP_SA_KEY_PROD }}' > ${{ github.workspace }}/gcloud-key.json
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
+    # Passo 2: O Terraform é inicializado, passando a chave explicitamente.
     - name: Terraform Init (Conecta ao bucket)
+      id: init
       run: terraform init -input=false
       working-directory: ./terraform
-      
+      env:
+        # <<< A MÁGICA ACONTECE AQUI: Fornecemos o caminho da chave diretamente ao comando.
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcloud-key.json
+
+    # Passo 3: O Terraform aplica as mudanças, também recebendo a chave explicitamente.
     - name: Terraform Apply (Cria/Atualiza o cluster)
+      id: apply
       run: terraform apply -auto-approve
       working-directory: ./terraform
+      env:
+        # <<< E fornecemos novamente para garantir.
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcloud-key.json
+
+  # Os outros jobs (test, build-and-push, deploy) podem continuar como estavam.
+  # No entanto, o job de 'deploy' também precisará de um passo de autenticação.
+  # Vamos focar em fazer o Terraform passar primeiro.
 
   test:
     name: Run Backend Tests
@@ -65,21 +69,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     env:
-      # <<< MUDADO: Aponte para o ID do seu projeto de PRODUÇÃO
       GCP_PROJECT_ID: "festive-post-461507-v9"
       GCP_REGION: us-central1
-      ARTIFACT_REPO: projeto-final-imagens # Pode ser o mesmo ou um novo repo para Prod
+      ARTIFACT_REPO: projeto-final-imagens
       IMAGE_BACKEND: lista-itens-backend
       IMAGE_FRONTEND: lista-itens-frontend
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
-      - name: Autenticar no Google Cloud
+      - name: Autenticar no Google Cloud e Configurar Docker
+        id: auth
         uses: google-github-actions/auth@v2
         with:
-          # <<< MUDADO: Usa o segredo da conta de PRODUÇÃO
           credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
-      - name: Configurar Docker
+      - name: Configurar Docker Helper
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
       - name: Build e Push do Backend
         run: |
@@ -91,30 +94,19 @@ jobs:
           docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
 
   deploy:
-    # NOME DO JOB ALTERADO PARA PRODUÇÃO
     name: Deploy to GKE Production
     runs-on: ubuntu-latest
     needs: build-and-push
     env:
-      # <<< MUDADO: Aponte para o ID do seu projeto de PRODUÇÃO
       GCP_PROJECT_ID: "festive-post-461507-v9"
-      # <<< MUDADO: Nome do cluster de PRODUÇÃO
       GKE_CLUSTER: "prod-cluster" 
       GKE_ZONE: us-central1-a
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
-
-      - name: Setup gcloud CLI with GKE Auth Plugin
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ env.GCP_PROJECT_ID }}
-          install_components: 'gke-gcloud-auth-plugin,kubectl'
-
       - name: Autenticar no Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          # <<< MUDADO: Usa o segredo da conta de PRODUÇÃO
           credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
       - name: Conectar ao cluster GKE
         run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
