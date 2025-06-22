@@ -47,11 +47,11 @@ jobs:
     # --- ETAPA B: INFRAESTRUTURA PRINCIPAL ---
     - name: Terraform Init (Conecta ao bucket)
       run: terraform init -input=false
-      working-directory: ./terraform
+      working-directory: ./terraform/stage
       
     - name: Terraform Apply (Cria/Atualiza o cluster)
       run: terraform apply -auto-approve
-      working-directory: ./terraform
+      working-directory: ./terraform/stage
 
   test:
     name: Run Backend Tests
