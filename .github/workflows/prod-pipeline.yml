@@ -22,8 +22,8 @@ jobs:
     - name: Setup gcloud
       uses: google-github-actions/setup-gcloud@v2
 
-    # --- MÉTODO DE AUTENTICAÇÃO NOVO E EXPLÍCITO ---
-    - name: Autenticar no Google Cloud
+    # --- MÉTODO DE AUTENTICAÇÃO ATUALIZADO ---
+    - name: Autenticar no Google Cloud e Expor Credenciais
       id: auth
       run: |
         # Escreve o conteúdo do segredo num ficheiro temporário
@@ -32,9 +32,11 @@ jobs:
         gcloud auth activate-service-account --key-file=gcloud-key.json
         # Define o projeto para garantir que todos os comandos usem o correto
         gcloud config set project ${{ env.GCP_PROJECT_ID }}
+        # <<< CORREÇÃO: Exporta o caminho do ficheiro de chave para o ambiente da pipeline.
+        # O Terraform irá detetar esta variável automaticamente.
+        echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcloud-key.json" >> $GITHUB_ENV
 
-    # --- O NOSSO PASSO DE DIAGNÓSTICO ---
-    # Agora este passo deve funcionar, pois o gsutil usará a autenticação acima.
+    # --- O NOSSO PASSO DE DIAGNÓSTICO (OPCIONAL AGORA, MAS BOM MANTER) ---
     - name: Testar acesso direto ao bucket com gsutil
       run: gsutil ls gs://${{ env.TF_STATE_BUCKET }}
 
