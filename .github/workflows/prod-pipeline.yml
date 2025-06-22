@@ -11,11 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      # Use as variáveis corretas para o seu ambiente de Produção
       TF_STATE_BUCKET: "bucket-tfstate-amira-462108"
       GCP_PROJECT_ID: "festive-post-461507-v9"
-      # Adicione o e-mail da sua conta de serviço aqui para facilitar
-      GCP_SA_EMAIL: "github-actions-prod-deployer@festive-post-461507-v9.iam.gserviceaccount.com"
 
     steps:
     - name: Checkout
@@ -24,39 +21,19 @@ jobs:
     - name: Setup gcloud
       uses: google-github-actions/setup-gcloud@v2
 
-    - name: Autenticar no Google Cloud
+    # --- O PASSO DE AUTENTICAÇÃO CORRETO ---
+    - name: Autenticar no Google Cloud e Expor Credenciais
       id: auth
       run: |
         echo '${{ secrets.GCP_SA_KEY_PROD }}' > gcloud-key.json
         gcloud auth activate-service-account --key-file=gcloud-key.json
         gcloud config set project ${{ env.GCP_PROJECT_ID }}
+        # A LINHA MÁGICA: Diz ao Terraform onde encontrar a chave.
         echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcloud-key.json" >> $GITHUB_ENV
-
-    # --- NOVOS PASSOS DE DIAGNÓSTICO ---
-    - name: 1. Verificar identidade autenticada
-      run: gcloud auth list
-
-    - name: 2. Verificar permissões no Projeto
-      run: |
-        echo "A verificar as permissões do projeto para ${{ env.GCP_SA_EMAIL }}..."
-        gcloud projects get-iam-policy ${{ env.GCP_PROJECT_ID }} \
-          --flatten="bindings[].members" \
-          --format='table(bindings.role)' \
-          --filter="bindings.members:${{ env.GCP_SA_EMAIL }}"
-
-    - name: 3. Verificar permissões no Bucket
-      run: |
-        echo "A verificar as permissões do bucket gs://${{ env.TF_STATE_BUCKET }}..."
-        gsutil iam get gs://${{ env.TF_STATE_BUCKET }}
-
-    # --- O NOSSO TESTE ORIGINAL ---
-    - name: 4. Tentar listar objetos no bucket
-      run: gsutil ls gs://${{ env.TF_STATE_BUCKET }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # --- ETAPA PRINCIPAL ---
     - name: Terraform Init (Conecta ao bucket)
       run: terraform init -input=false
       working-directory: ./terraform
