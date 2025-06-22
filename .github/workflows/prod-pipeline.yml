@@ -14,16 +14,6 @@ jobs:
       # Use as variáveis corretas para o seu ambiente de Produção
       TF_STATE_BUCKET: "bucket-tfstate-amira-462108"
       GCP_PROJECT_ID: "festive-post-461507-v9"
-
-    jobs:
-  terraform:
-    name: 'Terraform IaC (Infra as Code)'
-    runs-on: ubuntu-latest
-    
-    env:
-      # Use as variáveis corretas para o seu ambiente de Produção
-      TF_STATE_BUCKET: "bucket-tfstate-amira-462108"
-      GCP_PROJECT_ID: "festive-post-461507-v9"
       # Adicione o e-mail da sua conta de serviço aqui para facilitar
       GCP_SA_EMAIL: "github-actions-prod-deployer@festive-post-461507-v9.iam.gserviceaccount.com"
 
