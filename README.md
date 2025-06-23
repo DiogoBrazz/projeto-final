@@ -5,6 +5,9 @@
 -> Visualizar todos os serviços
 # kubectl get pods -A -w
 
+-> Pegar o EXTERNAL-IP do FRONT:
+# kubectl get service frontend-service -n frontend
+
 <<<----------MONITORAMENTO---------->>>
 
 -> Visualizar todos os serviços de monitoramento:
