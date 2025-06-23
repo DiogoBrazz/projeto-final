@@ -108,9 +108,6 @@ jobs:
       - name: Aplicar ConfigMap do datasource
         run: kubectl apply -f ./monitoring/grafana-datasource-config.yaml
 
-      - name: Aplicar ConfigMap do dashboard
-        run: kubectl apply -f ./monitoring/grafana-dashboard-config.yaml
-
   # <<< ========================== JOB PARA TESTES========================== >>>
 
   test:
