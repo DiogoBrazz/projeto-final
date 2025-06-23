@@ -1,21 +1,3 @@
-grafana:
-  adminPassword: "senha123" # Considere usar um Secret em produção
-
-  service:
-    type: LoadBalancer
-    port: 80
-    targetPort: 3000
-
-  sidecar:
-    dashboards:
-      enabled: true
-      label: grafana_dashboard
-      labelValue: "1"
-
-    datasources:
-      enabled: true
-      label: grafana_datasource
-      labelValue: "1"
 
 prometheus-operator:
   resources:
