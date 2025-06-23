@@ -102,11 +102,7 @@ jobs:
             --timeout 15m \
             -f ./monitoring/helm-dashboard-values.yaml
 
-      - name: Aguardar o Grafana subir
-        run: sleep 120
-
-      - name: Aplicar ConfigMap do datasource
-        run: kubectl apply -f ./monitoring/grafana-datasource-config.yaml
+      
 
   # <<< ========================== JOB PARA TESTES========================== >>>
 
