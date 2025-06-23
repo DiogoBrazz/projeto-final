@@ -6,11 +6,15 @@ grafana:
     port: 80
     targetPort: 3000
 
-  sidecar:
-    datasources:
-      enabled: true
-      label: grafana_datasource
-      labelValue: "1"
+datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090
+          access: proxy
+          isDefault: true
 
 prometheus-operator:
   resources:
