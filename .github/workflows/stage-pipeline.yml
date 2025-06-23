@@ -99,7 +99,6 @@ jobs:
             prometheus-community/kube-prometheus-stack \
             --namespace monitoring \
             --create-namespace \
-            --wait \
             --timeout 15m \
             -f ./monitoring/helm-dashboard-values.yaml
 

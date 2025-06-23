@@ -1,6 +1,5 @@
 grafana:
-  adminPassword: "senha123" # ou use um secret para mais segurança
-
+  adminPassword: "senha123"
   service:
     type: LoadBalancer
     portName: http
