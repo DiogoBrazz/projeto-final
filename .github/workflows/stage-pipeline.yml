@@ -100,9 +100,12 @@ jobs:
             --namespace monitoring \
             --create-namespace \
             --timeout 15m \
-            -f ./monitoring/helm-dashboard-values.yaml
-
+            
+      - name: Aguardar o Grafana subir
+        run: sleep 60
       
+      - name: Aplicando Helm values
+        run: -f ./monitoring/helm-dashboard-values.yaml
 
   # <<< ========================== JOB PARA TESTES========================== >>>
 
