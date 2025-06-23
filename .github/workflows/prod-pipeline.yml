@@ -1,7 +1,5 @@
-# NOME DA PIPELINE ALTERADO PARA PRODUÇÃO
 name: Deploy to Production (GKE)
 
-# GATILHO ALTERADO PARA ACIONAMENTO MANUAL NO GITHUB ACTIONS
 on:
   workflow_dispatch:
 
@@ -11,10 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      # Substitua pelo nome do bucket que você definiu
       TF_STATE_BUCKET: "bucket-tfstate-amira-462108"
-      GCP_PROJECT_ID: festive-post-461507-v9 # Adicionado para uso no gcloud
-      GCP_LOCATION: US-CENTRAL1 # Adicionado para uso no gcloud
+      GCP_PROJECT_ID: festive-post-461507-v9 
+      GCP_LOCATION: US-CENTRAL1 
 
     steps:
     - name: Checkout
@@ -28,7 +25,6 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # --- ETAPA A: GARANTIR QUE O BUCKET DE ESTADO EXISTA ---
     - name: Checar se o bucket de estado existe (Método Robusto)
       id: check_bucket
       run: gcloud storage buckets describe gs://${{ env.TF_STATE_BUCKET }}
@@ -41,7 +37,6 @@ jobs:
         echo "Bucket não encontrado. Criando bucket de estado..."
         gcloud storage buckets create gs://${{ env.TF_STATE_BUCKET }} --project=${{ env.GCP_PROJECT_ID }} --location=${{ env.GCP_LOCATION }} --uniform-bucket-level-access
 
-    # --- ETAPA B: INFRAESTRUTURA PRINCIPAL ---
     - name: Terraform Init (Conecta ao bucket)
       run: terraform init -input=false
       working-directory: ./terraform/prod
@@ -69,7 +64,6 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
       
-      # <<< Passo para instalar gcloud/kubectl e o plugin de autenticação >>>
       - name: Setup gcloud CLI with GKE Auth Plugin
         uses: google-github-actions/setup-gcloud@v2
         with:
@@ -91,9 +85,17 @@ jobs:
             prometheus-community/kube-prometheus-stack \
             --namespace monitoring \
             --create-namespace \
-            --wait \
             --timeout 15m \
             -f ./monitoring/helm-dashboard-values.yaml
+
+      - name: Aguardar o Grafana subir
+        run: sleep 60
+
+      - name: Aplicar ConfigMap do datasource
+        run: kubectl apply -f ./monitoring/grafana-datasource-config.yaml
+
+      - name: Aplicar ConfigMap do dashboard
+        run: kubectl apply -f ./monitoring/grafana-dashboard-config.yaml
 
   test:
     name: Run Backend Tests
@@ -118,10 +120,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     env:
-      # <<< MUDADO: Aponte para o ID do seu projeto de PRODUÇÃO
+  
       GCP_PROJECT_ID: "festive-post-461507-v9"
       GCP_REGION: us-central1
-      ARTIFACT_REPO: projeto-final-imagens # Pode ser o mesmo ou um novo repo para Prod
+      ARTIFACT_REPO: projeto-final-imagens
       IMAGE_BACKEND: lista-itens-backend
       IMAGE_FRONTEND: lista-itens-frontend
     steps:
@@ -130,7 +132,7 @@ jobs:
       - name: Autenticar no Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          # <<< MUDADO: Usa o segredo da conta de PRODUÇÃO
+         
           credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
       - name: Configurar Docker
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
@@ -144,14 +146,12 @@ jobs:
           docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
 
   deploy:
-    # NOME DO JOB ALTERADO PARA PRODUÇÃO
+ 
     name: Deploy to GKE Production
     runs-on: ubuntu-latest
     needs: [build-and-push, deploy-monitoring]
     env:
-      # <<< MUDADO: Aponte para o ID do seu projeto de PRODUÇÃO
       GCP_PROJECT_ID: "festive-post-461507-v9"
-      # <<< MUDADO: Nome do cluster de PRODUÇÃO
       GKE_CLUSTER: "prod-cluster" 
       GKE_ZONE: us-central1-a
       GCP_REGION: us-central1
@@ -169,7 +169,6 @@ jobs:
       - name: Autenticar no Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          # <<< MUDADO: Usa o segredo da conta de PRODUÇÃO
           credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
       - name: Conectar ao cluster GKE
         run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
