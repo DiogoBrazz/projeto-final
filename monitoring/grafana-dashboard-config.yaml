@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: projeto-final-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  projeto-final-dashboard.json: |
+    {
+      "title": "Visão Geral do Cluster",
+      "schemaVersion": 39,
+      "refresh": "10s",
+      "time": { "from": "now-1h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Uso de CPU (%)",
+          "type": "timeseries",
+          "datasource": "Prometheus",
+          "targets": [
+            { "expr": "(1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))) * 100", "refId": "A" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent" } },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 }
+        },
+        {
+          "id": 2,
+          "title": "Uso de Memória (%)",
+          "type": "timeseries",
+          "datasource": "Prometheus",
+          "targets": [
+            { "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100", "refId": "A" }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent" } },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }
+        },
+        {
+          "id": 3,
+          "title": "Pods em Execução",
+          "type": "stat",
+          "datasource": "Prometheus",
+          "targets": [
+            { "expr": "sum(kube_pod_status_phase{phase=\"Running\"})", "refId": "A" }
+          ],
+          "gridPos": { "h": 4, "w": 8, "x": 0, "y": 16 }
+        },
+        {
+          "id": 4,
+          "title": "Pods Pendentes",
+          "type": "stat",
+          "datasource": "Prometheus",
+          "targets": [
+            { "expr": "sum(kube_pod_status_phase{phase=\"Pending\"})", "refId": "A" }
+          ],
+          "gridPos": { "h": 4, "w": 8, "x": 8, "y": 16 }
+        },
+        {
+          "id": 5,
+          "title": "Pods com Falha",
+          "type": "stat",
+          "datasource": "Prometheus",
+          "targets": [
+            { "expr": "sum(kube_pod_status_phase{phase=\"Failed\"})", "refId": "A" }
+          ],
+          "gridPos": { "h": 4, "w": 8, "x": 16, "y": 16 }
+        }
+      ]
+    }

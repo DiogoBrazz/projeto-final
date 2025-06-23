@@ -1,17 +1,27 @@
 grafana:
-  adminPassword: "senha123"
+  adminPassword: "senha123" # Considere usar um Secret em produção
+
   service:
     type: LoadBalancer
-    portName: http
     port: 80
     targetPort: 3000
 
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          url: http://prometheus-stack-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
-          access: proxy
-          isDefault: true
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
+
+prometheus-operator:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
