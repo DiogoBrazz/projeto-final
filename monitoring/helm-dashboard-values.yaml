@@ -1,0 +1,18 @@
+grafana:
+  adminPassword: "senha123" # ou use um secret para mais segurança
+
+  service:
+    type: LoadBalancer
+    portName: http
+    port: 80
+    targetPort: 3000
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-stack-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+          access: proxy
+          isDefault: true
