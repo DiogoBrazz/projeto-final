@@ -1,3 +1,4 @@
+grafana:
   adminPassword: "senha123" # ou use um secret para mais segurança
 
   service:
