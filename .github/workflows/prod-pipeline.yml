@@ -50,6 +50,51 @@ jobs:
       run: terraform apply -auto-approve
       working-directory: ./terraform/prod
 
+  deploy-monitoring:
+    name: 'Deploy Monitoring (Prometheus + Grafana)'
+    runs-on: ubuntu-latest
+    needs: terraform
+
+    env:
+      GCP_PROJECT_ID: "festive-post-461507-v9"
+      GKE_CLUSTER: "prod-cluster"
+      GKE_ZONE: us-central1-a
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      
+      - name: Autenticar no Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
+      
+      # <<< Passo para instalar gcloud/kubectl e o plugin de autenticação >>>
+      - name: Setup gcloud CLI with GKE Auth Plugin
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          install_components: 'gke-gcloud-auth-plugin,kubectl'
+
+      - name: Conectar ao cluster GKE
+        run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
+      
+      - name: Instalar o Helm
+        uses: azure/setup-helm@v4
+
+      - name: Adicionar repositório do Prometheus
+        run: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts && helm repo update
+
+      - name: Deploy/Upgrade do kube-prometheus-stack
+        run: |
+          helm upgrade --install prometheus-stack \
+            prometheus-community/kube-prometheus-stack \
+            --namespace monitoring \
+            --create-namespace \
+            --wait \
+            --timeout 15m \
+            -f ./monitoring/helm-dashboard-values.yaml
+
   test:
     name: Run Backend Tests
     runs-on: ubuntu-latest
@@ -102,7 +147,7 @@ jobs:
     # NOME DO JOB ALTERADO PARA PRODUÇÃO
     name: Deploy to GKE Production
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [build-and-push, deploy-monitoring]
     env:
       # <<< MUDADO: Aponte para o ID do seu projeto de PRODUÇÃO
       GCP_PROJECT_ID: "festive-post-461507-v9"
