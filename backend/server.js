@@ -10,42 +10,13 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 
 // Configuração da conexão com o banco de dados
-// Os valores padrão agora refletem as novas credenciais
+// Lendo as variáveis de ambiente que o Kubernetes fornece
 const dbConfig = {
-  host: process.env.DB_HOST || 'db',
-  user: process.env.DB_USER || 'root',          // <-- ALTERADO
-  password: process.env.DB_PASSWORD || 'root',      // <-- ALTERADO
-  database: process.env.DB_NAME || 'projetofinal',  // <-- ALTERADO
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 };
-
-// ... o restante do arquivo continua exatamente o mesmo ...
-
-// Função para inicializar o banco de dados e a tabela
-async function initializeDatabase() {
-  try {
-    const connection = await mysql.createConnection({
-      host: dbConfig.host,
-      user: dbConfig.user,
-      password: dbConfig.password,
-    });
-    
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\`;`);
-    await connection.query(`USE \`${dbConfig.database}\`;`);
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS itens (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nome VARCHAR(255) NOT NULL,
-        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-    console.log('Banco de dados e tabela verificados/criados com sucesso.');
-    await connection.end();
-  } catch (error) {
-    console.error('Erro ao inicializar o banco de dados:', error);
-    // Espera um pouco e tenta novamente, comum em ambientes com container
-    setTimeout(initializeDatabase, 5000);
-  }
-}
 
 // Rota para listar todos os itens
 app.get('/itens', async (req, res) => {
@@ -55,6 +26,7 @@ app.get('/itens', async (req, res) => {
     await connection.end();
     res.status(200).json(rows);
   } catch (error) {
+    console.error('Erro ao buscar itens:', error);
     res.status(500).json({ error: 'Erro ao buscar itens no banco de dados.' });
   }
 });
@@ -72,11 +44,34 @@ app.post('/itens', async (req, res) => {
     await connection.end();
     res.status(201).json({ id: result.insertId, nome });
   } catch (error) {
+    console.error('Erro ao inserir item:', error);
     res.status(500).json({ error: 'Erro ao inserir item no banco de dados.' });
   }
 });
 
+// <<< NOVA ROTA PARA DELETAR UM ITEM >>>
+app.delete('/itens/:id', async (req, res) => {
+  const { id } = req.params; // Pega o ID que vem na URL (ex: /itens/5)
+
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    // Executa o comando SQL para deletar o item com o ID correspondente
+    const [result] = await connection.query('DELETE FROM itens WHERE id = ?;', [id]);
+    await connection.end();
+
+    // Verifica se alguma linha foi realmente afetada/deletada
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Item não encontrado.' });
+    }
+    
+    res.status(200).json({ message: 'Item deletado com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao deletar item:', error);
+    res.status(500).json({ error: 'Erro ao deletar item no banco de dados.' });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`Servidor backend rodando na porta ${PORT}`);
-  initializeDatabase();
 });
