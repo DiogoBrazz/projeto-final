@@ -1,13 +1,14 @@
+# arquivos/database/mysql-statefulset.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
-  namespace: database # <<< ADICIONADO: Namespace correto
+  namespace: database
 spec:
   selector:
     matchLabels:
       app: mysql
-  serviceName: "mysql-service" # Nome do serviço que vamos criar
+  serviceName: "mysql-service"
   replicas: 1
   template:
     metadata:
@@ -16,12 +17,10 @@ spec:
     spec:
       containers:
       - name: mysql
-        image: mysql:8.0 # Imagem oficial do MySQL
+        image: mysql:8.0
         ports:
         - containerPort: 3306
           name: mysql
-
-        # Variáveis que a imagem oficial do MySQL entende
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
@@ -33,13 +32,13 @@ spec:
             secretKeyRef:
               name: mysql-secret
               key: mysql-database
-
-        # Montando o volume persistente para guardar os dados
         volumeMounts:
         - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
-
-        # Pedido de recursos bem menor
+        # --- ADICIONE DAQUI ---
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+        # --- ATÉ AQUI ---
         resources:
           requests:
             cpu: "200m"
@@ -47,8 +46,12 @@ spec:
           limits:
             cpu: "500m"
             memory: "1Gi"
-
-  # Seção que conecta o StatefulSet ao PVC
+      # --- ADICIONE DAQUI ---
+      volumes:
+      - name: init-scripts
+        configMap:
+          name: mysql-init-scripts
+      # --- ATÉ AQUI ---
   volumeClaimTemplates:
   - metadata:
       name: mysql-persistent-storage

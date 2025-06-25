@@ -1,0 +1,15 @@
+# arquivos/database/mysql-configmap-schema.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-scripts
+  namespace: database
+data:
+  init.sql: |
+    # Usamos CREATE TABLE IF NOT EXISTS para o script ser seguro e não falhar
+    # se for executado em um banco de dados que já tenha a tabela.
+    CREATE TABLE IF NOT EXISTS itens (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nome VARCHAR(255) NOT NULL,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
