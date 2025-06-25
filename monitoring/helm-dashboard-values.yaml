@@ -1,5 +1,5 @@
 grafana:
-  adminPassword: "senha123" # Considere usar um Secret em produção
+  adminPassword: "senha123" 
 
   service:
     type: LoadBalancer
