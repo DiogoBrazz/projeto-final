@@ -11,18 +11,4 @@ spec:
     - name: http
       protocol: TCP
       port: 3001       # <<< CORRIGIDO: Porta que o serviço expõe internamente
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-service
-  namespace: backend
-spec:
-  type: ClusterIP
-  selector:
-    app: backend
-  ports:
-    - name: http
-      protocol: TCP
-      port: 3001       # <<< CORRIGIDO: Porta que o serviço expõe internamente
       targetPort: 3001 # <<< CORRIGIDO: Porta do nosso container backend

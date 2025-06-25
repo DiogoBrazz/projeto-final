@@ -6,12 +6,4 @@ metadata:
 data:
   APP_ENV: "production"
   DB_HOST: "mysql-service.database.svc.cluster.local"
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: backend-config
-  namespace: backend
-data:
-  APP_ENV: "production"
-  DB_HOST: "mysql-service.database.svc.cluster.local"
   DB_PORT: "3306"

@@ -32,38 +32,4 @@ spec:
             memory: "32Mi"
           limits:
             cpu: "50m"
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend
-  namespace: frontend
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: frontend
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-      containers:
-      - name: frontend
-        # <<< CORRIGIDO: Aponta para a imagem que vamos subir
-        image: IMAGE_PLACEHOLDER/lista-itens-frontend
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
-      
-        env:
-        - name: API_BASE_URL
-          # <<< CORRIGIDO: Aponta para a porta correta do serviço do backend
-          value: "http://backend-service.backend.svc.cluster.local:3001"
-
-        resources: # Mantido, mas otimizado
-          requests:
-            cpu: "25m"
-            memory: "32Mi"
-          limits:
-            cpu: "50m"
             memory: "64Mi"

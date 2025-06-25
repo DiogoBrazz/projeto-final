@@ -6,11 +6,3 @@ metadata:
 data:
   NODE_ENV: "production"
   PUBLIC_BASE_URL: "/"
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: frontend-config
-  namespace: frontend
-data:
-  NODE_ENV: "production"
-  PUBLIC_BASE_URL: "/"
