@@ -7,5 +7,5 @@ COPY . /usr/share/nginx/html
 # <<< ADICIONADO: Copia nosso novo arquivo de configuração para o local correto dentro do container
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expomos a porta 80, que é a porta padrão do Nginx
+# Expomos a porta 80, que é a porta padrão do Nginx teste
 EXPOSE 80
